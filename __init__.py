@@ -620,10 +620,10 @@ def pskimport(filepath,
     # file name w/out extension
     gen_name_part = util_gen_name_part(filepath)
     gen_names = {
-        'armature_object':  gen_name_part + '.ao',
-        'armature_data':    gen_name_part + '.ad',
-            'mesh_object':  gen_name_part + '.mo',
-            'mesh_data':    gen_name_part + '.md'
+        'armature_object':  gen_name_part + '_Armature',
+        'armature_data':    gen_name_part,
+            'mesh_object':  gen_name_part,
+            'mesh_data':    gen_name_part
     }
     
     if bImportmesh:
@@ -1723,7 +1723,9 @@ def psaimport(filepath,
             if len(nla_track.strips) == 0:
                 strip = nla_stripes.new(Name, nla_track_last_frame, action)
             else:
-                strip = nla_stripes.new(Name, nla_stripes[-1].frame_end, action)
+                nla_track = armature_obj.animation_data.nla_tracks.new()
+                nla_track.name = Name  # Name the track after the animation
+                strip = nla_track.strips.new(Name, 0, action)  # Start each action at frame 0
 
             # Do not pollute track. Makes other tracks 'visible' through 'empty space'.
             strip.extrapolation = 'NOTHING'
