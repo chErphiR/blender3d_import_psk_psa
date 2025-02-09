@@ -181,8 +181,12 @@ def util_is_header_valid(filename, file_ext, chunk_id, error_callback):
     
     
 def util_gen_name_part(filepath):
-    """Return file name without extension"""
-    return re.match(r'.*[/\\]([^/\\]+?)(\..{2,5})?$', filepath).group(1)
+    """Return file name without extension, ignoring '_anim' at the end"""
+    match = re.match(r'.*[/\\]([^/\\]+?)(\..{2,5})?$', filepath)
+    if match:
+        name = match.group(1)
+        return name[:-5] if name.endswith("_anim") else name
+    return None
                 
                 
 def vec_to_axis_vec(vec_in, vec_out):
@@ -701,6 +705,14 @@ def pskimport(filepath,
         psk_bones[i] = psk_bone
         return psk_bone
 
+    # Создаём коллекцию с именем меша
+    collection_name = gen_names['mesh_object']
+    new_collection = bpy.data.collections.get(collection_name)
+    if not new_collection:
+        new_collection = bpy.data.collections.new(collection_name)
+        bpy.context.scene.collection.children.link(new_collection)
+
+
     psk_bone_name_toolong = False
         
     # indexed by bone index. array of psk_bone
@@ -1186,10 +1198,13 @@ def pskimport(filepath,
     
     if bImportmesh:
     
+    
         util_obj_link(context, mesh_obj)
         util_select_all(False)
         
-            
+        new_collection.objects.link(mesh_obj)
+        if mesh_obj.name in bpy.context.scene.collection.objects:
+            bpy.context.scene.collection.objects.unlink(mesh_obj)      
         if not bImportbone:   
         
             util_obj_select(context, mesh_obj)
@@ -1197,6 +1212,11 @@ def pskimport(filepath,
             
         else:
             # select_all(False)
+            
+            new_collection.objects.link(armature_obj)
+            if armature_obj.name in bpy.context.scene.collection.objects:
+                bpy.context.scene.collection.objects.unlink(armature_obj)
+            
             util_obj_select(context, armature_obj)
             
             # parenting mesh to armature object
@@ -1551,7 +1571,7 @@ def psaimport(filepath,
         if Group != 'None':
             Name = "(%s) %s" % (Group,Name)
         if bFilenameAsPrefix:
-            Name = "(%s) %s" % (gen_name_part, Name)
+            Name = "%s_%s" % (gen_name_part, Name)
             
         action = bpy.data.actions.new(name = Name)
         
