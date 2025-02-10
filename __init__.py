@@ -705,12 +705,22 @@ def pskimport(filepath,
         psk_bones[i] = psk_bone
         return psk_bone
 
+    # Ищем коллекцию Export
+    export_collection = bpy.data.collections.get("Export")
+
     # Создаём коллекцию с именем меша
     collection_name = gen_names['mesh_object']
     new_collection = bpy.data.collections.get(collection_name)
+
     if not new_collection:
         new_collection = bpy.data.collections.new(collection_name)
-        bpy.context.scene.collection.children.link(new_collection)
+
+        # Если есть коллекция Export, добавляем внутрь неё
+        if export_collection:
+            export_collection.children.link(new_collection)
+        else:
+            bpy.context.scene.collection.children.link(new_collection)
+
 
 
     psk_bone_name_toolong = False
@@ -815,6 +825,12 @@ def pskimport(filepath,
     
     #==================================================================================================
     # Skeleton. Prepare.
+            
+        # Проверяем, есть ли уже арматура
+        existing_armature = bpy.data.objects.get(gen_names['armature_object'])
+        if existing_armature:
+            bpy.data.objects.remove(existing_armature, do_unlink=True)
+
             
         armature_data = bpy.data.armatures.new(gen_names['armature_data'])
         armature_obj = bpy.data.objects.new(gen_names['armature_object'], armature_data)
