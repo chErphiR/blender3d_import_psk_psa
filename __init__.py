@@ -623,9 +623,12 @@ def pskimport(filepath,
     
     # file name w/out extension
     gen_name_part = util_gen_name_part(filepath)
+    def clean_name(name):
+        return re.sub(r'_m\d{2}', '', name)  # Убираем _m00, _m01, _m02
+
     gen_names = {
-        'armature_object':  gen_name_part + '_Armature',
-        'armature_data':    gen_name_part,
+        'armature_object':  clean_name(gen_name_part + '_Armature'),
+        'armature_data':    clean_name(gen_name_part),
             'mesh_object':  gen_name_part,
             'mesh_data':    gen_name_part
     }
